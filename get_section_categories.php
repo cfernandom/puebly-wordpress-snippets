@@ -17,19 +17,32 @@ function rest_section_categories_callback($data) {
         return array();
     }
 
-    $section_categories   = array(35, 3, 36, 5, 7, 37, 4); // Parent categories
+    $section_ids   = array(35, 3, 36, 5, 7, 37, 4); // Parent categories
 
-    $response = array();
+    $section_child_categories = array();
 
-    foreach ($section_categories as $section_categorie) {
+    foreach ($section_ids as $section_id) {
         $child_categories = get_categories(array(
-            'child_of' => $$section_categorie,
+            'child_of' => $section_id,
         ));
 
-        // append child categories to response
-        $response = array_merge($response, $child_categories);
+        $section_child_categories = array_merge($section_child_categories, $child_categories);
     }
-    
-    return rest_ensure_response($response);
+
+    $child_categories_with_posts = array();
+
+    foreach ($section_child_categories as $category) {
+        // Verificar si hay al menos un post en la categoría actual con la categoría del pueblo p
+        $posts_in_category = get_posts(array(
+            'category__and'      => array($category->term_id, $town_category),
+            'numberposts'   => 1, // Obtener al menos un post
+        ));
+
+        if (!empty($posts_in_category)) {
+            $child_categories_with_posts[] = $category;
+        }
+    }
+
+    return rest_ensure_response($child_categories_with_posts);    
 }
 
