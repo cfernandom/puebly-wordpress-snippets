@@ -1,6 +1,12 @@
 <?php
+/**
+ * Register REST API endpoint for retrieving newer posts.
+ */
 add_action('rest_api_init', 'register_rest_newer_posts');
 
+/**
+ * Register REST route for the 'newer-post' endpoint.
+ */
 function register_rest_newer_posts() {
     register_rest_route('api/v1', 'newer-post', [
         'methods'  => WP_REST_SERVER::READABLE,
@@ -8,6 +14,12 @@ function register_rest_newer_posts() {
     ]);
 }
 
+/**
+ * Callback function for the 'newer-post' REST API endpoint.
+ *
+ * @param array $data Request data.
+ * @return WP_REST_Response|array Response data.
+ */
 function rest_newer_posts_callback($data) {
     $town_category    = isset($data['t']) ? sanitize_text_field($data['t']) : '';
     $section_category = isset($data['s']) ? sanitize_text_field($data['s']) : '';
@@ -48,7 +60,7 @@ function rest_newer_posts_callback($data) {
 
             while ($posts->have_posts()) {
                 $posts->the_post();
-                
+
                 $categories = get_the_category();
                 $post_category = array();
 
@@ -97,6 +109,12 @@ function rest_newer_posts_callback($data) {
     return rest_ensure_response($response);
 }
 
+/**
+ * Retrieve post images from HTML content.
+ *
+ * @param string $content Post content.
+ * @return array Image URLs.
+ */
 function get_post_images($content) {
     $pattern = '/<img [^>]*src=["\']([^"\']+)["\'][^>]*>/i';
     preg_match_all($pattern, $content, $image_post_urls);
@@ -104,6 +122,12 @@ function get_post_images($content) {
     return $image_urls;
 }
 
+/**
+ * Remove HTML comments from content.
+ *
+ * @param string $content Post content.
+ * @return string Content without HTML comments.
+ */
 function remove_html_comments($content) {
     return preg_replace('/<!--(.*?)-->/s', '', $content);
 }
