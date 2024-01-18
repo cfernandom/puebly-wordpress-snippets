@@ -10,8 +10,8 @@ function register_rest_section_categories() {
 }
 
 function rest_section_categories_callback($data) {
-    $town_category = isset($data['t']) ? sanitize_text_field($data['t']) : '';
-    $page_number   = isset($data['p']) ? absint(sanitize_text_field($data['p'])) : 1;
+    $town_category = isset($data['t']) ? absint($data['t']) : '';
+    $page_number   = isset($data['p']) ? absint($data['p']) : 1;
 
     if (empty($town_category)) {
         return array();
