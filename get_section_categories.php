@@ -33,13 +33,24 @@ function rest_section_categories_callback($data) {
 
     foreach ($section_child_categories as $category) {
         // Verificar si hay al menos un post en la categoría actual con la categoría del pueblo p
-        $posts_in_category = get_posts(array(
-            'category__and'      => array($category->term_id, $town_category),
-            'numberposts'   => 1, // Obtener al menos un post
-        ));
+        $args = array(
+            'category__and' => array($category->term_id, $town_category),
+            'post_type'     => 'post',
+            // 'posts_per_page' => 10,
+            'post_status'   => 'publish',
+            'paged'         => 1,
+        );
 
-        if (!empty($posts_in_category)) {
-            $child_categories_with_posts[] = $category;
+        $posts_in_category = new WP_Query($args);
+
+        if ($posts_in_category->have_posts()) {
+            $child_categories_with_posts[] = array(
+                'id'   => $category->term_id,
+                'name' => $category->name,
+                'parent' => $category->parent,
+                'description' => $category->description,
+                'count' => count($posts_in_category->posts),
+            );
         }
     }
 
