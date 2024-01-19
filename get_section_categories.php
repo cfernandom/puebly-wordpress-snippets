@@ -1,5 +1,8 @@
 <?php
 
+define('SECTION_CATEGORY_IDS', [35, 3, 36, 5, 7, 37, 4]); // Parent categories
+define('DEPARTMENT_CATEGORY_IDS', [39]);
+
 add_action('rest_api_init', 'register_rest_section_categories');
 
 function register_rest_section_categories() {
@@ -17,11 +20,17 @@ function rest_section_categories_callback($data) {
         return array();
     }
 
-    $section_ids   = array(35, 3, 36, 5, 7, 37, 4); // Parent categories
+    if (!defined('SECTION_CATEGORY_IDS')) {
+        return array();
+    }
+
+    if (false !== ($child_categories_with_posts = get_transient('child_categories_with_posts_' . $town_category))) {
+        return rest_ensure_response($child_categories_with_posts);
+    }
 
     $section_child_categories = array();
 
-    foreach ($section_ids as $section_id) {
+    foreach (SECTION_CATEGORY_IDS as $section_id) {
         $child_categories = get_categories(array(
             'child_of' => $section_id,
         ));
@@ -54,6 +63,34 @@ function rest_section_categories_callback($data) {
         }
     }
 
-    return rest_ensure_response($child_categories_with_posts);    
+    set_transient('child_categories_with_posts_' . $town_category, $child_categories_with_posts, HOUR_IN_SECONDS * 12);
+
+    return rest_ensure_response($child_categories_with_posts);
 }
 
+add_action('save_post', 'delete_child_categories_with_posts_transient');
+
+function delete_child_categories_with_posts_transient($post_id) {
+
+    if (!defined('DEPARTMENT_CATEGORY_IDS')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $post_categories = wp_get_post_categories($post_id);
+
+    foreach ($post_categories as $category_id) {
+        $category = get_category($category_id);
+
+        if (in_array($category->parent, DEPARTMENT_CATEGORY_IDS)) {
+            delete_transient('child_categories_with_posts_' . $category_id);
+        }
+    }
+}
