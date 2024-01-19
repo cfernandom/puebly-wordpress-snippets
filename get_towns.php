@@ -6,6 +6,11 @@
 define('PUEBLOS_HABILITADOS', [2312]); // ID del post
 
 /**
+ * Define constant for town category ID.
+ */
+define('TOWN_CATEGORY_ID', 51); // ID de la categoría Pueblo
+
+/**
  * Register REST API endpoint for towns.
  */
 add_action('rest_api_init', 'register_rest_towns');
@@ -32,7 +37,7 @@ function rest_towns_callback($data) {
 
 	// Query posts with specific parameters.
 	$args  = [
-		'category'      => 51,
+		'category'      => TOWN_CATEGORY_ID,
 		'post_type'     => 'post',
 		'posts_per_page' => 10,
 		'paged'         => $page_number,
