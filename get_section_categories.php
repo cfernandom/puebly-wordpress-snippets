@@ -8,12 +8,12 @@ define('DEPARTMENT_CATEGORY_IDS', [39]);
 /**
  * Register REST API route for section categories.
  */
-add_action('rest_api_init', 'register_rest_section_categories');
+add_action('rest_api_init', 'register_rest_section_child_categories');
 
-function register_rest_section_categories() {
-    register_rest_route('api/v1', 'section-categories', [
+function register_rest_section_child_categories() {
+    register_rest_route('api/v1', 'section-child-categories', [
         'methods'  => WP_REST_SERVER::READABLE,
-        'callback' => 'rest_section_categories_callback',
+        'callback' => 'rest_section_child_categories_callback',
     ]);
 }
 
@@ -23,7 +23,7 @@ function register_rest_section_categories() {
  * @param array $data The request data.
  * @return WP_REST_Response|array Response data.
  */
-function rest_section_categories_callback($data) {
+function rest_section_child_categories_callback($data) {
     $town_category = isset($data['t']) ? absint($data['t']) : '';
     $page_number   = isset($data['p']) ? absint($data['p']) : 1;
 
