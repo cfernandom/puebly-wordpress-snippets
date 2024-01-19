@@ -90,7 +90,7 @@ function get_child_categories_with_posts($section_child_categories, $town_catego
             $child_categories_with_posts[] = [
                 'id'          => $category->term_id,
                 'name'        => $category->name,
-                'parent'      => $category->parent,
+                'parent_id'      => $category->parent,
                 'description' => $category->description,
                 'count'       => count($posts_in_category->posts),
             ];
