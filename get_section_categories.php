@@ -24,54 +24,62 @@ function rest_section_categories_callback($data) {
         return array();
     }
 
-    if (false !== ($child_categories_with_posts = get_transient('child_categories_with_posts_' . $town_category))) {
+    $transient_key = 'child_categories_with_posts_' . $town_category;
+
+    if (false !== ($child_categories_with_posts = get_transient($transient_key))) {
         return rest_ensure_response($child_categories_with_posts);
     }
 
-    $section_child_categories = array();
+    $section_child_categories = get_section_child_categories();
+
+    $child_categories_with_posts = get_child_categories_with_posts($section_child_categories, $town_category);
+
+    set_transient($transient_key, $child_categories_with_posts, HOUR_IN_SECONDS * 12);
+
+    return rest_ensure_response($child_categories_with_posts);
+}
+
+function get_section_child_categories() {
+    $section_child_categories = [];
 
     foreach (SECTION_CATEGORY_IDS as $section_id) {
-        $child_categories = get_categories(array(
-            'child_of' => $section_id,
-        ));
-
+        $child_categories = get_categories(['child_of' => $section_id]);
         $section_child_categories = array_merge($section_child_categories, $child_categories);
     }
 
-    $child_categories_with_posts = array();
+    return $section_child_categories;
+}
+
+function get_child_categories_with_posts($section_child_categories, $town_category) {
+    $child_categories_with_posts = [];
 
     foreach ($section_child_categories as $category) {
-        // Verificar si hay al menos un post en la categoría actual con la categoría del pueblo p
-        $args = array(
-            'category__and' => array($category->term_id, $town_category),
+        $args = [
+            'category__and' => [$category->term_id, $town_category],
             'post_type'     => 'post',
-            // 'posts_per_page' => 10,
             'post_status'   => 'publish',
             'paged'         => 1,
-        );
+        ];
 
         $posts_in_category = new WP_Query($args);
 
         if ($posts_in_category->have_posts()) {
-            $child_categories_with_posts[] = array(
-                'id'   => $category->term_id,
-                'name' => $category->name,
-                'parent' => $category->parent,
+            $child_categories_with_posts[] = [
+                'id'          => $category->term_id,
+                'name'        => $category->name,
+                'parent'      => $category->parent,
                 'description' => $category->description,
-                'count' => count($posts_in_category->posts),
-            );
+                'count'       => count($posts_in_category->posts),
+            ];
         }
     }
 
-    set_transient('child_categories_with_posts_' . $town_category, $child_categories_with_posts, HOUR_IN_SECONDS * 12);
-
-    return rest_ensure_response($child_categories_with_posts);
+    return $child_categories_with_posts;
 }
 
 add_action('save_post', 'delete_child_categories_with_posts_transient');
 
 function delete_child_categories_with_posts_transient($post_id) {
-
     if (!defined('DEPARTMENT_CATEGORY_IDS')) {
         return;
     }
