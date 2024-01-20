@@ -24,6 +24,7 @@ function rest_newer_posts_callback($data) {
     $town_category    = isset($data['t']) ? sanitize_text_field($data['t']) : '';
     $section_category = isset($data['s']) ? sanitize_text_field($data['s']) : '';
     $page_number      = isset($data['p']) ? absint(sanitize_text_field($data['p'])) : 1;
+    $section_child_categories = isset($data['sc']) ? sanitize_text_field($data['sc']) : '';
 
     if (empty($town_category)) {
         return array();
@@ -34,6 +35,29 @@ function rest_newer_posts_callback($data) {
 
     $response = array();
 
+    $tax_query = array(
+        'relation' => 'AND',
+        array(
+            'taxonomy' => 'category',
+            'field'    => 'term_id',
+            'terms'    => absint($town_category),
+        ),
+        array(
+            'taxonomy' => 'category',
+            'field'    => 'term_id',
+            'terms'    => absint($section_category),
+        ),
+    );
+
+    if ($section_child_categories !== '') {
+        $section_child_categories = explode(',', $section_child_categories);
+        $tax_query[] = array(
+            'taxonomy' => 'category',
+            'field'    => 'term_id',
+            'terms'    => $section_child_categories,
+        );
+    }
+
     try {
         foreach ($section_categories as $section_cat) {
             $args = array(
@@ -41,19 +65,7 @@ function rest_newer_posts_callback($data) {
                 'paged'          => $page_number,
                 'post_type'      => 'post',
                 'post_status'    => 'publish',
-                'tax_query'      => array(
-                    'relation' => 'AND',
-                    array(
-                        'taxonomy' => 'category',
-                        'field'    => 'term_id',
-                        'terms'    => absint($town_category),
-                    ),
-                    array(
-                        'taxonomy' => 'category',
-                        'field'    => 'term_id',
-                        'terms'    => absint($section_cat),
-                    ),
-                ),
+                'tax_query'      => $tax_query,
             );
 
             $posts = new WP_Query($args);
