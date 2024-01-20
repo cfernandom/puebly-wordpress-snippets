@@ -45,7 +45,7 @@ function rest_newer_posts_callback($data) {
         array(
             'taxonomy' => 'category',
             'field'    => 'term_id',
-            'terms'    => absint($section_category),
+            'terms'    => $section_categories,
         ),
     );
 
