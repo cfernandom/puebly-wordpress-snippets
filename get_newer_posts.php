@@ -33,33 +33,34 @@ function rest_newer_posts_callback($data) {
     $section_categories   = ($section_category !== '') ? array($section_category) : array(35, 3, 36, 5, 7, 37, 4);
     $departament_categories = array(39);
 
-    $response = array();
-
-    $tax_query = array(
-        'relation' => 'AND',
-        array(
-            'taxonomy' => 'category',
-            'field'    => 'term_id',
-            'terms'    => absint($town_category),
-        ),
-        array(
-            'taxonomy' => 'category',
-            'field'    => 'term_id',
-            'terms'    => $section_categories,
-        ),
-    );
-
-    if ($section_child_categories !== '') {
-        $section_child_categories = explode(',', $section_child_categories);
-        $tax_query[] = array(
-            'taxonomy' => 'category',
-            'field'    => 'term_id',
-            'terms'    => $section_child_categories,
-        );
-    }
+    $response = array();    
 
     try {
         foreach ($section_categories as $section_cat) {
+            
+            $tax_query = array(
+                'relation' => 'AND',
+                array(
+                    'taxonomy' => 'category',
+                    'field'    => 'term_id',
+                    'terms'    => absint($town_category),
+                ),
+                array(
+                    'taxonomy' => 'category',
+                    'field'    => 'term_id',
+                    'terms'    => $section_cat,
+                ),
+            );
+        
+            if ($section_child_categories !== '') {
+                $section_child_categories = explode(',', $section_child_categories);
+                $tax_query[] = array(
+                    'taxonomy' => 'category',
+                    'field'    => 'term_id',
+                    'terms'    => $section_child_categories,
+                );
+            }
+
             $args = array(
                 'posts_per_page' => 10,
                 'paged'          => $page_number,
