@@ -33,7 +33,7 @@ function rest_newer_posts_callback($data) {
     $section_categories   = ($section_category !== '') ? array($section_category) : array(35, 3, 36, 5, 7, 37, 4);
     $departament_categories = array(39);
 
-    $response = array();    
+    $response = array();
 
     try {
         foreach ($section_categories as $section_cat) {
@@ -101,6 +101,7 @@ function rest_newer_posts_callback($data) {
                 $feature_image_url = get_the_post_thumbnail_url($post_id);
                 $image_urls        = get_post_images($html_content);
                 $modified_date     = get_the_modified_date('Y-m-d H:i:s', $post_id);
+                $custom_fields     = get_custom_fields();
 
                 $response[] = array(
                     'id'                  => $post_id,
@@ -111,6 +112,7 @@ function rest_newer_posts_callback($data) {
                     'categories'         => $post_category,
                     'section_category_id' => $current_section_category,
                     'modified_date'      => $modified_date,
+					'custom_fields' => $custom_fields,
                 );
             }
             wp_reset_postdata();
@@ -120,6 +122,24 @@ function rest_newer_posts_callback($data) {
     }
 
     return rest_ensure_response($response);
+}
+
+/**
+ * The function `get_custom_fields` retrieves custom fields data using Advanced Custom Fields plugin in
+ * PHP.
+ * 
+ * @return The `get_custom_fields()` function returns an array of custom fields with keys 'whatsapp',
+ * 'phone', and 'location', each corresponding to the values retrieved using Advanced Custom Fields
+ * functions.
+ */
+function get_custom_fields() {
+    // Documentation https://www.advancedcustomfields.com/resources/code-examples/
+    $custom_fields = array(
+        'whatsapp' => get_field('whatsapp-publicacion'),
+        'phone' => get_field('celular-publicacion'),
+        'location' => get_field('ubicacion-publicacion')
+    );
+    return $custom_fields;
 }
 
 /**
