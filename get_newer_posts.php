@@ -1,4 +1,8 @@
 <?php
+if (!defined('SECTION_CATEGORY_IDS')) {
+    define('SECTION_CATEGORY_IDS', [35, 3, 36, 5, 7, 37, 4]); 
+}
+
 /**
  * Register REST API endpoint for retrieving newer posts.
  */
@@ -30,7 +34,7 @@ function rest_newer_posts_callback($data) {
         return array();
     }
 
-    $section_categories   = ($section_category !== '') ? array($section_category) : array(35, 3, 36, 5, 7, 37, 4);
+    $section_categories   = ($section_category !== '') ? array($section_category) : SECTION_CATEGORY_IDS;
     $departament_categories = array(39);
 
     $response = array();
@@ -83,10 +87,7 @@ function rest_newer_posts_callback($data) {
                     if (in_array($category->term_id, $section_categories)) {
                         $current_section_category = $category->term_id;
                     }
-                    if ($category->name == 'Pueblo' || 
-                        $category->term_id == $town_category || 
-                        in_array($category->term_id, $section_categories) || 
-                        in_array($category->term_id, $departament_categories)
+                    if (!in_array($category->parent, SECTION_CATEGORY_IDS)
                     ) {
                         continue;
                     }
