@@ -165,3 +165,72 @@ function get_post_images($content) {
 function remove_html_comments($content) {
     return preg_replace('/<!--(.*?)-->/s', '', $content);
 }
+
+add_action('rest_api_init', 'register_rest_get_post');
+
+function register_rest_get_post()
+{
+    register_rest_route('api/v1', 'post/(?P<id>\d+)', [
+        'methods'  => WP_REST_SERVER::READABLE,
+        'callback' => 'rest_get_post_callback',
+    ]);
+}
+
+function rest_get_post_callback($data)
+{
+    $post_id = $data['id'];
+    $args = array(
+        'p' => $post_id,
+        'post_type' => 'post',
+        'post_status' => 'publish',
+    );
+    
+    try {
+        $posts = new WP_Query($args);
+    } catch (Exception $e) {
+        return new WP_Error('rest_exception', esc_html__('Error interno en el servidor.'), array('status' => 500));
+    }
+
+    while ($posts->have_posts()) {
+        $posts->the_post();
+        $categories = get_the_category();
+        $post_category = array();
+
+        $current_section_category = '';
+        foreach ($categories as $category_id) {
+            $category = get_category($category_id);
+            if (in_array($category->term_id, SECTION_CATEGORY_IDS)) {
+                $current_section_category = $category->term_id;
+            }
+            if (!in_array($category->parent, SECTION_CATEGORY_IDS)) {
+                continue;
+            }
+            $post_category[] = array(
+                'id'   => $category->term_id,
+                'name' => $category->name,
+            );
+        }
+
+        $post_id           = get_the_ID();
+        $html_content      = get_the_content();
+        $feature_image_url = get_the_post_thumbnail_url($post_id);
+        $image_urls        = get_post_images($html_content);
+        $modified_date     = get_the_modified_date('Y-m-d H:i:s', $post_id);
+        $custom_fields     = get_custom_fields();
+
+        $response = array(
+            'id'                  => $post_id,
+            'title'               => get_the_title(),
+            'content'             => remove_html_comments($html_content),
+            'featured_img_url'   => $feature_image_url,
+            'images'             => $image_urls,
+            'categories'         => $post_category,
+            'section_category_id' => $current_section_category,
+            'modified_date'      => $modified_date,
+            'custom_fields' => $custom_fields,
+        );
+    }
+    wp_reset_postdata();
+    
+    return rest_ensure_response($response);
+}
