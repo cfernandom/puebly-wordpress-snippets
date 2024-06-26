@@ -85,7 +85,7 @@ function rest_newer_posts_callback($data) {
                 foreach ($categories as $category_id) {
                     $category = get_category($category_id);
                     if (in_array($category->term_id, $section_categories)) {
-                        $current_section_category = $section_cat;
+                        $current_section_category = intval($section_cat);
                     }
                     if (!in_array($category->parent, SECTION_CATEGORY_IDS)
                     ) {
